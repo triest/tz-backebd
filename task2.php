@@ -20,6 +20,22 @@ if ($conn->connect_error) {
 }
 $str=null;
 
+
+try {
+    $create_table = "select 1  from  `import_csv` LIMIT 1";
+
+    $stmt = $conn->prepare(
+            $create_table
+    );
+    $stmt->execute();
+    $stmt->free_result();
+} catch (mysqli_sql_exception  $e) {
+    $query = file_get_contents("tz-backebd.sql");
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+}
+
+
 $count=1;
 $first=true;
 if (($handle = fopen("task2.csv", "r")) !== false) {
@@ -53,7 +69,7 @@ if (($handle = fopen("task2.csv", "r")) !== false) {
         if($str==null) {
             $str = implode("`,`", $db_fields_array);
         }
-         
+
         try {
             $STRING=  "INSERT INTO `import_csv`(`".$str."`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
             $stmt = $conn->prepare(
@@ -65,6 +81,7 @@ if (($handle = fopen("task2.csv", "r")) !== false) {
             $stmt->bind_param('sssssssssssss',...$db_array_to_insert);
 
             $stmt->execute();
+            $stmt->free_result();
         } catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
         }
